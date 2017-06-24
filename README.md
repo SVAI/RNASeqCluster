@@ -1,2 +1,2 @@
-# rnaseq_cluster
+# RNASeqCluster
 Clusters RNAseq Data
