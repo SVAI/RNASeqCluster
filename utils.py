@@ -42,6 +42,8 @@ def merge_experiments(filepath=merged_file):
     # Get experiment file names
     files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if "counts" in f]
     results = pd.concat([preprocess_file(f) for f in files])
+    meta = ["__alignment_not_unique", "__ambiguous", "__no_feature", "__not_aligned", "__too_low_aQual"]
+    results = results.drop(meta, axis=1)
     results = results.fillna(0)
     pd.to_pickle(results, filepath)
     results.to_csv(filepath.split(".")[0] + ".csv", index=False)
