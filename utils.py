@@ -36,7 +36,7 @@ def preprocess_file(file):
     data["label"] = pd.Series(label, index=data.index)
     return data
 
-def merge_experiments(filepath):
+def merge_experiments(filepath=merged_file):
     if os.path.isfile(filepath):
         return pd.read_pickle(filepath)
     # Get experiment file names
@@ -50,4 +50,4 @@ def merge_experiments(filepath):
 if __name__ == "__main__":
     # Load .bam file
     # samfile = pysam.AlignmentFile("test.bam", "rb")
-    df = merge_experiments(merged_file)
+    df = merge_experiments()
