@@ -1,7 +1,11 @@
-import pysam
-import pandas as pd
+import os
 import datetime
 
+import pandas as pd
+import pysam
+
+data_dir = "data"
+merged_file = os.path.join(data_dir, "data.pickle")
 read_attrs = ["query_name", "flag", "reference_id", "reference_start", "mapping_quality", "cigarstring", "next_reference_id", "next_reference_start", "query_alignment_length", "query_sequence", "query_qualities", "tags"]
 
 def alignedSegmentToDataFrame(samfile, maxreads=None):
@@ -21,17 +25,29 @@ def alignedSegmentToDataFrame(samfile, maxreads=None):
      df = pd.DataFrame(listOfReads)
      print(df)
 
+def preprocess_file(file):
+    experiment_name = os.path.split(file)[-1].split("_")[0]
+    label = os.path.split(file)[-1].split("_")[1].split(".")[0]
+
+    data = pd.read_csv(file, delimiter="\t")
+    data = data.set_index("Gene")
+    data = data.transpose()
+    data = data.rename(index={"Count": experiment_name})
+    data["label"] = pd.Series(label, index=data.index)
+    return data
+
+def merge_experiments(filepath):
+    if os.path.isfile(filepath):
+        return pd.read_pickle(filepath)
+    # Get experiment file names
+    files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if "counts" in f]
+    results = pd.concat([preprocess_file(f) for f in files])
+    results = results.fillna(0)
+    pd.to_pickle(results, filepath)
+    results.to_csv(filepath.split(".")[0] + ".csv", index=False)
+    return results
+
 if __name__ == "__main__":
     # Load .bam file
-    start = datetime.datetime.now()
-    samfile = pysam.AlignmentFile("test.bam", "rb")
-    end = datetime.datetime.now()
-
-    print("Time to load .sam file: {}".format(end - start))
-
-    # Convert Alignment to Data Frame, time how long it takes
-    start = datetime.datetime.now()
-    alignedSegmentToDataFrame(samfile, None)
-    end = datetime.datetime.now()
-
-    print((end - start))
+    # samfile = pysam.AlignmentFile("test.bam", "rb")
+    df = merge_experiments(merged_file)
